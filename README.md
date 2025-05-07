@@ -1,6 +1,6 @@
-# top-webpack
+# toy-webpack
 
-`top-webpack` 是一个用 TypeScript 编写的简易打包器，旨在帮助学习和理解 Webpack 的核心打包原理，包括模块依赖分析、构建模块图、代码执行模板封装等过程。
+`toy-webpack` 是一个用 TypeScript 编写的简易打包器，旨在帮助学习和理解 Webpack 的核心打包原理，包括模块依赖分析、构建模块图、代码执行模板封装等过程。
 
 ---
 
