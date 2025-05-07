@@ -32,7 +32,7 @@
       return module.exports;
     }
   
-    // 定义 exports 的 getter（用于支持 ES Module 的导出语义）
+    // 定义 exports 的 getter（用于支持 ES Module 的导出语义）(Harmony Export)
     __webpack_require__.d = (exports, definition) => {
       for (const key in definition) {
         Object.defineProperty(exports, key, {
@@ -49,6 +49,15 @@
       }
       Object.defineProperty(exports, '__esModule', { value: true });
     };
+
+    // 根据ES标记 处理默认导入
+    __webpack_require__.n = (exports) => {
+      if(exports['__esModule'] === true){
+        return () => exports['default']
+      }else{
+        return () => exports
+      }
+    }
   
     // 启动入口模块（moduleId = 0）
     return __webpack_require__(0);
@@ -56,74 +65,48 @@
     
       0: [
         function(module, exports, __webpack_require__) {
-          const {
-  aDefault,
-  a
-} = __webpack_require__("./a.js");
-const testA = __webpack_require__("./a.js");
-const {
-  b
-} = __webpack_require__("./b.js");
-__webpack_require__("./a.js");
-const {
-  base
-} = __webpack_require__("./base.js");
-a();
-b();
-base();
-console.log(aDefault, testA);
-const c = 10;
-const t = 10;
-__webpack_require__.d(exports, {
-  default: 200,
-  t: t,
-  c: c
-});
+          var __WEBPACK_IMPORTED_MODULE__aogskn = __webpack_require__("./cnt.js");
+var __WEBPACK_IMPORTED_MODULE_DEFAULT__aogskn = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE__aogskn);
+var e = __WEBPACK_IMPORTED_MODULE_DEFAULT__aogskn();
+var __WEBPACK_IMPORTED_MODULE__q7xxto = __webpack_require__("./base.js");
+var __WEBPACK_IMPORTED_MODULE_DEFAULT__q7xxto = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE__q7xxto);
+var base = __WEBPACK_IMPORTED_MODULE_DEFAULT__q7xxto();
+e.cnt += 10;
+console.log(base, e.cnt);
+// import testA from './a.js'
+// import { b } from "./b.js";
+// require("./a.js");
+// const { base } = require("./base.js");
+// a();
+// b();
+// base();
+// console.log(aDefault,testA)
+// const c = 10
+// export default 200
+// export const t = 10
+// export {c}
         },
-        {"./a.js":1,"./b.js":2,"./base.js":3}
+        {"./cnt.js":1,"./base.js":2}
       ],
     
       1: [
         function(module, exports, __webpack_require__) {
-          const {
-  base
-} = __webpack_require__("./base.js");
-function a() {
-  console.log("a module");
-  base();
-}
+          __webpack_require__.r(exports);
+let cnt = 10;
 __webpack_require__.d(exports, {
-  a: a,
-  default: 100
+  cnt: cnt
 });
         },
-        {"./base.js":3}
+        {}
       ],
     
       2: [
         function(module, exports, __webpack_require__) {
-          const {
-  base
-} = __webpack_require__("./base.js");
-function b() {
-  console.log("b module" + 'b 调用了');
-  base();
-}
-__webpack_require__.d(exports, {
-  b: b
-});
-        },
-        {"./base.js":3}
-      ],
-    
-      3: [
-        function(module, exports, __webpack_require__) {
           function base() {
   console.log("base module");
 }
-__webpack_require__.d(exports, {
-  base: base
-});
+module.exports.default = base;
+// module.exports['__esModule'] = true
         },
         {}
       ],
