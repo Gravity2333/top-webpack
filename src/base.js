@@ -3,4 +3,4 @@ function base() {
 }
 
 module.exports.default = base
-// module.exports['__esModule'] = true
+module.exports['__esModule'] = true
