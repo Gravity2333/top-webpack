@@ -1,4 +1,4 @@
-import { parse } from "@babel/parser";
+import { parse, ParseResult } from "@babel/parser";
 import traverse from "@babel/traverse";
 import generator from "@babel/generator";
 import fs from "fs";
@@ -18,6 +18,8 @@ import {
   objectExpression,
 } from "@babel/types";
 import ejs from "ejs";
+const configFilePath = path.resolve(__dirname, "../toy-webpack.config.js");
+const config = require(configFilePath);
 
 type Asset = {
   deps: string[];
@@ -52,25 +54,70 @@ type Modules = Record<number, [Asset, Record<string, number>]>;
     ] as const;
   }
 
+  function handleLoaders(fileContent: string, completeAssetPath: string) {
+    const moduleRules: any[] = config?.module?.rules || [];
+    for (const moduleRule of moduleRules) {
+      if (moduleRule.test && moduleRule.test.test(completeAssetPath)) {
+        const loaders: any[] = moduleRule.use || [];
+        return loaders.reverse().reduce((handledSource, loaderConfig) => {
+          if (typeof loaderConfig === "string") {
+            const loader = require(path.resolve(
+              configFilePath,
+              "../",
+              loaderConfig
+            ));
+            return loader(handledSource);
+          } else if (typeof loaderConfig === "object") {
+            const loader = require(path.resolve(
+              configFilePath,
+              "../",
+              loaderConfig.loader
+            ));
+
+            const options = loaderConfig.options || {};
+            return loader.call({ getOptions: () => options },handledSource);
+          }
+        }, fileContent);
+      }
+    }
+
+    return fileContent;
+  }
+
   /**
    * 创建一个资源
    * @param path
    */
   function createAsset(completeAssetPath: string): Asset {
     /** 文件原始内容 */
-    const fileContent = fs.readFileSync(completeAssetPath).toString();
-    /** 生成抽象语法树 */
-    const ast = parse(fileContent, { sourceType: "module" });
+    const fileRowContent = fs.readFileSync(completeAssetPath).toString();
+    /** 处理modules配置 */
+    const fileContent = handleLoaders(fileRowContent, completeAssetPath);
+
+    let ast: ParseResult;
+    try {
+      /** 生成抽象语法树 */
+      ast = parse(fileContent, { sourceType: "module" });
+    } catch (e) {
+      throw new Error(
+        `模块: ${completeAssetPath} 解析错误，你可能需要一个loader处理这个模块！`
+      );
+    }
+
     /** 存储依赖 */
     const [deps, pushDeps] = unRepeatList<string>();
     /** 导出MAP */
     const exportsMap: any = {};
     /** 是否模块导出 */
-    let moduleExport = false
+    let moduleExport = false;
     /** 预先扫描 */
     traverse(ast, {
-      ExportDefaultDeclaration() { moduleExport = true; },
-      ExportNamedDeclaration() { moduleExport = true; }
+      ExportDefaultDeclaration() {
+        moduleExport = true;
+      },
+      ExportNamedDeclaration() {
+        moduleExport = true;
+      },
     });
     /** 遍历AST */
     traverse(ast, {
@@ -105,9 +152,11 @@ type Modules = Record<number, [Asset, Record<string, number>]>;
         ) {
           // 默认导入：import foo from 'bar'
           const localName = path.node.specifiers[0].local.name;
-          const random = Math.random().toString(36).substring(2, 8)
-          const __WEBPACK_IMPORTED_MODULE__ = '__WEBPACK_IMPORTED_MODULE__' + random
-          const __WEBPACK_IMPORTED_MODULE_DEFAULT_ = '__WEBPACK_IMPORTED_MODULE_DEFAULT__'+random
+          const random = Math.random().toString(36).substring(2, 8);
+          const __WEBPACK_IMPORTED_MODULE__ =
+            "__WEBPACK_IMPORTED_MODULE__" + random;
+          const __WEBPACK_IMPORTED_MODULE_DEFAULT_ =
+            "__WEBPACK_IMPORTED_MODULE_DEFAULT__" + random;
           requireCall = variableDeclaration("var", [
             variableDeclarator(
               identifier(__WEBPACK_IMPORTED_MODULE__),
@@ -133,19 +182,12 @@ type Modules = Record<number, [Asset, Record<string, number>]>;
           const defaultCall = variableDeclaration("var", [
             variableDeclarator(
               identifier(localName),
-              callExpression(
-                identifier(__WEBPACK_IMPORTED_MODULE_DEFAULT_),
-                []
-              )
+              callExpression(identifier(__WEBPACK_IMPORTED_MODULE_DEFAULT_), [])
             ),
-          ])
+          ]);
 
           // 替换 import 语句
-          path.replaceWithMultiple([
-            requireCall,
-            defaultFnCall,
-            defaultCall
-          ]);
+          path.replaceWithMultiple([requireCall, defaultFnCall, defaultCall]);
         } else {
           // 命名导入：import { foo } from 'bar'
           const properties = path.node.specifiers.map((spec) => {
@@ -166,11 +208,9 @@ type Modules = Record<number, [Asset, Record<string, number>]>;
             ),
           ]);
 
-
           // 替换 import 语句
           path.replaceWith(requireCall);
         }
-
       },
 
       // 处理默认导出
@@ -217,7 +257,8 @@ type Modules = Record<number, [Asset, Record<string, number>]>;
         enter(path) {
           if (moduleExport) {
             // 在最前面添加 __webpack_require__.r(exports)
-            path.unshiftContainer('body',
+            path.unshiftContainer(
+              "body",
               expressionStatement(
                 callExpression(
                   memberExpression(
@@ -300,8 +341,6 @@ type Modules = Record<number, [Asset, Record<string, number>]>;
   }
 
   // 解析配置
-  const configFilePath = path.resolve(__dirname, "../toy-webpack.config.js");
-  const config = require(configFilePath);
   const entry = path.resolve(configFilePath, "../", config.entry);
   // 依赖收集
   const modules = collectAssetsBFS(entry);
@@ -315,6 +354,6 @@ type Modules = Record<number, [Asset, Record<string, number>]>;
   const configOutputPath = config.output?.path;
   const configOutputFilename = config.output?.filename;
   const outputPath = path.resolve(configOutputPath, "./");
-  fs.mkdir(outputPath, { recursive: true }, (err) => { });
+  fs.mkdir(outputPath, { recursive: true }, (err) => {});
   fs.writeFileSync(path.resolve(outputPath, configOutputFilename), dist);
 })();

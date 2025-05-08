@@ -65,48 +65,51 @@
     
       0: [
         function(module, exports, __webpack_require__) {
-          var __WEBPACK_IMPORTED_MODULE__aogskn = __webpack_require__("./cnt.js");
-var __WEBPACK_IMPORTED_MODULE_DEFAULT__aogskn = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE__aogskn);
-var e = __WEBPACK_IMPORTED_MODULE_DEFAULT__aogskn();
-var __WEBPACK_IMPORTED_MODULE__q7xxto = __webpack_require__("./base.js");
-var __WEBPACK_IMPORTED_MODULE_DEFAULT__q7xxto = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE__q7xxto);
-var base = __WEBPACK_IMPORTED_MODULE_DEFAULT__q7xxto();
-e.cnt += 10;
-console.log(base, e.cnt);
-// import testA from './a.js'
-// import { b } from "./b.js";
-// require("./a.js");
-// const { base } = require("./base.js");
-// a();
-// b();
-// base();
-// console.log(aDefault,testA)
-// const c = 10
-// export default 200
-// export const t = 10
-// export {c}
+          //@ts-ignore
+var __WEBPACK_IMPORTED_MODULE__qnxisd = __webpack_require__("./styles.css");
+var __WEBPACK_IMPORTED_MODULE_DEFAULT__qnxisd = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE__qnxisd);
+var styles = __WEBPACK_IMPORTED_MODULE_DEFAULT__qnxisd();
+console.log(styles);
+// // 直接使用 styles 对象
+const div = document.createElement("div");
+div.innerHTML = "Hello CSS Modules!";
+div.className = styles.container; // 直接使用类名映射
+document.body.appendChild(div);
         },
-        {"./cnt.js":1,"./base.js":2}
+        {"./styles.css":1}
       ],
     
       1: [
         function(module, exports, __webpack_require__) {
           __webpack_require__.r(exports);
-let cnt = 10;
-__webpack_require__.d(exports, {
-  cnt: cnt
-});
-        },
-        {}
-      ],
-    
-      2: [
-        function(module, exports, __webpack_require__) {
-          function base() {
-  console.log("base module");
+(function appendDom(cssSource) {
+  const styleDom = document.createElement("style");
+  styleDom.innerText = cssSource;
+  document.head.appendChild(styleDom);
+})(`.container_taq38x {
+  color: white;
+  background-color: red;
 }
-module.exports.default = base;
-// module.exports['__esModule'] = true
+
+.body_zauech {
+  height: 200px;
+}
+
+._test_ix2p2y{
+    vertical-align: middle;
+}
+
+span {
+  font-family: "Courier New", Courier, monospace;
+}
+*/ /**__CSS_KEYMAP__{"container":"container_taq38x","body":"body_zauech","_test":"_test_ix2p2y"}`);
+__webpack_require__.d(exports, {
+  default: {
+    "container": "container_taq38x",
+    "body": "body_zauech",
+    "_test": "_test_ix2p2y"
+  }
+});
         },
         {}
       ],
